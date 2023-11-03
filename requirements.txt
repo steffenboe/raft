@@ -1,0 +1,23 @@
+
+1. Network Communication
+
+Servers can connect to each other
+
+-> java Socket, IPC
+-> Server2Server: connect via Socket, call method on server
+-> Client2Server: request must be marked that it comes from a client
+-> network mechanism must allow that requesters identify themself as client or server
+
+2. Implement RequestVote Request
+
+3. Implement AppendEntries Request
+
+4. Timeout-based leader election
+
+5. Leadership Preserveation
+
+6. Persistent Storage
+
+7. Cluster elects & maintains stable leader
+
+8. Client application
