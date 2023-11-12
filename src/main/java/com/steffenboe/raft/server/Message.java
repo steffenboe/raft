@@ -1,4 +1,4 @@
-package com.steffenboe;
+package com.steffenboe.raft.server;
 
 record Message(String content) {
 

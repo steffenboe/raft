@@ -8,9 +8,42 @@ Servers can connect to each other
 -> Client2Server: request must be marked that it comes from a client
 -> network mechanism must allow that requesters identify themself as client or server
 
+2. Service Discovery
+- on startup: client connects to a randomly chosen server
+- if connected server is not the leader, it will reject the request but in its response, 
+  will point the client to the (last known) leader
+
 2. Implement RequestVote Request
+- 1: on startup: server is "follower"
+- followers wait for heartbeat
+- 2: when all servers are followers, election timeout will occur; results in a new election
+- 3: a follower increment its term and switches to candidate state
+- 4: votes for itself and **issues RequestVote requests to all servers** 
+- 5: servers will vote for one candidate per term (first-come-first-serve) 
+
+RequestVote
+- server holds cluster configuration
+    - single machine cluster configuration: list of ports where nodes listen
+- to each server in cluster configuration: send requestVote request
+- server: receive RequestVote request
+
+Use-Case: Server Transition
+
+- start: follower
+- on election timeout: candidate
+- on election win: leader
+
+Use-Case: Election
+
+- only performed when server is in candidate state
+- when servers start, they are in follower state
+- reevaluate state
 
 3. Implement AppendEntries Request
+- leader sends periodic heartbeat to ALL followers
+
+3a. Service Discovery Mechanism
+- on startup, server needs to register itself to other servers
 
 4. Timeout-based leader election
 

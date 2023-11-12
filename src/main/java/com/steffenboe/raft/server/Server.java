@@ -1,34 +1,46 @@
-package com.steffenboe;
+package com.steffenboe.raft.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
  * Server that listens for incoming requests.
  */
-class Server {
+public class Server {
 
-    private int port;
+    private final Integer[] ports;
+    private ServerSocket serverSocket;
+    private int index = 0;
 
-    Server(int port) {
-        this.port = port;
+    public Server(Integer[] ports) {
+        this.ports = ports;
     }
 
     /**
      * Server listens for Client-Connections and responds to requests.
      */
-    void listen() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+    public void listen() {
+        System.out.println("Trying startup on port " + ports[index] + "...");
+        try (ServerSocket socket = new ServerSocket(ports[index])) {
+            this.serverSocket = socket;
             System.out.println("Server is up and running on port " + serverSocket.getLocalPort());
             while (true) {
                 acceptConnection(serverSocket);
             }
+        } catch (BindException e) {
+            index++;
+            listen();
+
         } catch (NumberFormatException | IOException e) {
-            System.err.println(String.format("Stopping server, reason: %s", e.getMessage()));
+            System.err.println(String.format("Unrecoverable error: %s, shutting down.", e.getMessage()));
+            throw new RuntimeException(e);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println("No available port found in given list, starting server failed.");
         }
     }
 
@@ -36,8 +48,7 @@ class Server {
         Socket clientSocket = serverSocket.accept();
         System.out.println("Client connection established.");
         Thread.ofVirtual().start(() -> {
-            try (PrintWriter out = getPrintWriter(clientSocket);
-                    BufferedReader in = getBufferedReader(clientSocket);) {
+            try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
                 processMessage(out, in);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -60,6 +71,18 @@ class Server {
             System.out.println("Received message from client: " + inputLine);
             Message message = new Message(inputLine);
             out.println(message.process());
+        }
+    }
+
+    public int getPort() {
+        return ports[index];
+    }
+
+    public void stop() {
+        try {
+            this.serverSocket.close();
+        } catch (IOException ex) {
+            System.err.println(String.format("Failed to stop server, reason: ", ex.getMessage()));
         }
     }
 }
