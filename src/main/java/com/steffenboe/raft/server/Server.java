@@ -56,7 +56,12 @@ public class Server {
         System.out.println("Client connection established.");
         Thread.ofVirtual().start(() -> {
             try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
-                state.processMessage(out, in);
+                boolean result = state.processMessage(in, out);
+                if(!result){
+                    out.println("closing connection");
+                    System.out.println("Closing client connection.");
+                    clientSocket.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

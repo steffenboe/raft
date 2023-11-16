@@ -34,17 +34,19 @@ class ServerTest {
      */
     @Test
     void shouldListen() throws IOException, InterruptedException {
+        assertThat(server.state(), instanceOf(Follower.class));
+    }
+
+    @Test
+    void shouldAbortWhenNotProcessedMessage() throws IOException, InterruptedException {
         try (Socket clientSocket = new Socket("localhost", 8080)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            String message = "Hello World";
+            String message = "f;Hello World";
             out.println(message);
-            
-            String serverResponse = in.readLine();
-
-            assertThat(serverResponse, is(message));
-            assertThat(server.state(), instanceOf(Follower.class));
-        }
+            String response = in.readLine();
+            assertThat(response, is("closing connection"));
+        } 
     }
 
     /**

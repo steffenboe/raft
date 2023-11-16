@@ -13,12 +13,7 @@ import java.io.PrintWriter;
 class Follower implements ServerState {
 
     @Override
-    public void processMessage(PrintWriter out, BufferedReader in) throws IOException {
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println("Received message from client: " + inputLine);
-            Message message = new Message(inputLine);
-            out.println(message.process());
-        }
+    public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
+        return false;
     }
 }

@@ -6,6 +6,5 @@ import java.io.PrintWriter;
 
 interface ServerState {
 
-    public void processMessage(PrintWriter out, BufferedReader in) throws IOException;
-
+    public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException;
 }
