@@ -56,7 +56,7 @@ public class Server {
         System.out.println("Client connection established.");
         Thread.ofVirtual().start(() -> {
             try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
-                processMessage(out, in);
+                state.processMessage(out, in);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -70,15 +70,6 @@ public class Server {
 
     private PrintWriter getPrintWriter(Socket clientSocket) throws IOException {
         return new PrintWriter(clientSocket.getOutputStream(), true);
-    }
-
-    private void processMessage(PrintWriter out, BufferedReader in) throws IOException {
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println("Received message from client: " + inputLine);
-            Message message = new Message(inputLine);
-            out.println(message.process());
-        }
     }
 
     public int getPort() {
