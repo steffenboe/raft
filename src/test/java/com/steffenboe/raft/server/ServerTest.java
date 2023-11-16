@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,27 +15,18 @@ import org.junit.jupiter.api.Test;
 
 class ServerTest {
 
-    private static Thread serverThread;
+    private static Server server;
     private static final Integer[] PORT_RANGE = {8080, 8081};
 
     @BeforeAll
     static void startServerThread() {
-        Thread.Builder builder = Thread.ofVirtual().name("server-", 0);
-        Runnable task = startServerInstance();
-        serverThread = builder.start(task);
+        server = new Server(PORT_RANGE);
+        server.start();
     }
 
     @AfterAll
     static void interruptServerThread() {
-        serverThread.interrupt();
-    }
-
-    private static Runnable startServerInstance() {
-        Runnable task = () -> {
-            Server server = new Server(PORT_RANGE);
-            server.listen();
-        };
-        return task;
+        server.stop();
     }
 
     /**
@@ -51,6 +43,7 @@ class ServerTest {
             String serverResponse = in.readLine();
 
             assertThat(serverResponse, is(message));
+            assertThat(server.state(), instanceOf(Follower.class));
         }
     }
 
@@ -59,13 +52,10 @@ class ServerTest {
      */
     @Test
     void shouldRetryWhenPortInUse() throws IOException {
-        Thread.Builder builder = Thread.ofVirtual().name("server-", 1);
-        Runnable task = startServerInstance();
-        serverThread = builder.start(task);
+        Server server = new Server(PORT_RANGE);
+        server.start();
 
         assertThat(new Socket("localhost", 8081).isConnected(), is(true));
-        
-        serverThread.interrupt();
     }
 
 }

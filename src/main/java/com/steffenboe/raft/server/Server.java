@@ -16,15 +16,22 @@ public class Server {
     private final Integer[] ports;
     private ServerSocket serverSocket;
     private int index = 0;
+    private Thread thread;
+
+    private ServerState state = new Follower();
 
     public Server(Integer[] ports) {
         this.ports = ports;
     }
 
+    public void start(){
+        this.thread = new Thread(this::listen);
+        thread.start();
+    }
     /**
      * Server listens for Client-Connections and responds to requests.
      */
-    public void listen() {
+    private void listen() {
         System.out.println("Trying startup on port " + ports[index] + "...");
         try (ServerSocket socket = new ServerSocket(ports[index])) {
             this.serverSocket = socket;
@@ -79,10 +86,10 @@ public class Server {
     }
 
     public void stop() {
-        try {
-            this.serverSocket.close();
-        } catch (IOException ex) {
-            System.err.println(String.format("Failed to stop server, reason: ", ex.getMessage()));
-        }
+        thread.interrupt();
+    }
+
+    public ServerState state() {
+        return state;
     }
 }
