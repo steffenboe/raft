@@ -16,6 +16,8 @@ Servers can connect to each other
 2. Implement RequestVote Request
 - 1: on startup: server is "follower"
 - followers wait for heartbeat from leader
+- when no heartbeat comes in election timeout, new election will be started
+  - follower needs to detect election timeout
 - 2: when all servers are followers, election timeout will occur; results in a new election
 - 3: a follower increment its term and switches to candidate state
 - 4: votes for itself and **issues RequestVote requests to all servers** 

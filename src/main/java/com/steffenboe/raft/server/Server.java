@@ -18,16 +18,17 @@ public class Server {
     private int index = 0;
     private Thread thread;
 
-    private ServerState state = new Follower();
+    private ServerState state = new Follower(new Election());
 
     public Server(Integer[] ports) {
         this.ports = ports;
     }
 
-    public void start(){
+    public void start() {
         this.thread = new Thread(this::listen);
         thread.start();
     }
+
     /**
      * Server listens for Client-Connections and responds to requests.
      */
@@ -57,7 +58,7 @@ public class Server {
         Thread.ofVirtual().start(() -> {
             try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
                 boolean result = state.processMessage(in, out);
-                if(!result){
+                if (!result) {
                     out.println("closing connection");
                     System.out.println("Closing client connection.");
                     clientSocket.close();
