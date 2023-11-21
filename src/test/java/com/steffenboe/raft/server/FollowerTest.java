@@ -53,9 +53,16 @@ class FollowerTest {
         assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
     }
 
+	@Test
+	void shouldResetReceivedHeartbeat() throws IOException, InterruptedException {
+		receiveHeartbeat();
+		Thread.sleep(Duration.ofSeconds(5));
+		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
+	}
+
     // TODO should start election on missing heartbeat
 
-	
+
     private void receiveHeartbeat() throws IOException {
         PrintWriter out = mock(PrintWriter.class);
         BufferedReader in = mock(BufferedReader.class);

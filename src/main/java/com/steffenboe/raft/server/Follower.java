@@ -61,6 +61,7 @@ class Follower implements ServerState {
                 electionTimeoutListener.onElectionTimeout();
                 isWaiting = false;
             }
+            receivedHeartbeat = false;
             waitForTimeout();
         }
         Thread.currentThread().interrupt();
