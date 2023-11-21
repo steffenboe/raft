@@ -14,7 +14,7 @@ class Follower implements ServerState {
     private boolean receivedHeartbeat;
     private final ElectionTimeoutListener electionTimeoutListener;
     private boolean isWaiting = true;
-    private long electionTimeout = 3L;
+    private final long electionTimeout = 3L;
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
         this.electionTimeoutListener = electionTimeoutListener;
@@ -40,18 +40,30 @@ class Follower implements ServerState {
 
     private void waitForHeartbeat() {
         Thread.ofVirtual().start(() -> {
-            while (isWaiting) {
-                if (!receivedHeartbeat) {
-                    electionTimeoutListener.onElectionTimeout();
-                }
-                try {
-                    Thread.sleep(Duration.ofSeconds(electionTimeout));
-                } catch (InterruptedException ex) {
-                    System.err.println("Error while waiting for heartbeat: " + ex.getMessage());
-                }
+            try {
+                waitForTimeout();
+                verifyReceivedHeartbeat();
+            } catch (InterruptedException ex) {
+                System.err.println("Error while waiting for heartbeat: " + ex.getMessage());
+                isWaiting = false;
+                Thread.currentThread().interrupt();
             }
         });
+    }
 
+    private void waitForTimeout() throws InterruptedException {
+        Thread.sleep(Duration.ofSeconds(electionTimeout));
+    }
+
+    private void verifyReceivedHeartbeat() throws InterruptedException {
+        while (isWaiting) {
+            if (!receivedHeartbeat) {
+                electionTimeoutListener.onElectionTimeout();
+                isWaiting = false;
+            }
+            waitForTimeout();
+        }
+        Thread.currentThread().interrupt();
     }
 
 }

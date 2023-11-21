@@ -18,10 +18,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FollowerTest {
 
     private Follower follower;
-    private ElectionTimeoutListener.FakeElectionTimeoutListener fakeElectionTimeoutListener = new ElectionTimeoutListener.FakeElectionTimeoutListener();
+    private ElectionTimeoutListener.FakeElectionTimeoutListener fakeElectionTimeoutListener;
 
     @BeforeEach
     void setup() {
+		this.fakeElectionTimeoutListener = new ElectionTimeoutListener.FakeElectionTimeoutListener();
         this.follower = new Follower(fakeElectionTimeoutListener);
     }
 
@@ -40,22 +41,27 @@ class FollowerTest {
      */
     @Test
     void shouldReceiveHeartbeat() throws IOException {
-        PrintWriter out = mock(PrintWriter.class);
-        BufferedReader in = mock(BufferedReader.class);
-
-        when(in.readLine()).thenReturn("l;appendentry;");
-
-        follower.processMessage(in, out);
-
+        receiveHeartbeat();
         assertThat(follower.receivedHeartbeat(), is(true));
+		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(false));
     }
 
     @Test
     void shouldNotifyOnHeartbeatTimeout() throws InterruptedException {
         Thread.sleep(Duration.ofSeconds(5));
         assertThat(follower.receivedHeartbeat(), is(false));
-		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
+        assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
     }
 
     // TODO should start election on missing heartbeat
+
+	
+    private void receiveHeartbeat() throws IOException {
+        PrintWriter out = mock(PrintWriter.class);
+        BufferedReader in = mock(BufferedReader.class);
+
+        when(in.readLine()).thenReturn("l;appendentry;");
+
+        follower.processMessage(in, out);
+    }
 }
