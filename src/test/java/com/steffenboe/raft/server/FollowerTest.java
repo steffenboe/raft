@@ -10,22 +10,45 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class FollowerTest {
+class FollowerTest {
 
 	private Follower follower;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		this.follower = new Follower();
 	}
 
 	@Test
-	public void shouldNotProcessMessagesNotFromALeader() throws IOException {
+	void shouldNotProcessMessagesNotFromALeader() throws IOException {
 		PrintWriter out = mock(PrintWriter.class);
 		BufferedReader in = mock(BufferedReader.class);
+
+		when(in.readLine()).thenReturn("f;appendentry;");
+
 		assertThat(follower.processMessage(in, out), is(false));
 	}
+
+	/**
+	 * Follower should receive heartbeat from leader.
+	 */
+	@Test
+	void shouldReceiveHeartbeat() throws IOException {
+		PrintWriter out = mock(PrintWriter.class);
+		BufferedReader in = mock(BufferedReader.class);
+
+		when(in.readLine()).thenReturn("l;appendentry;");
+
+		follower.processMessage(in, out);
+
+		assertThat(follower.receivedHeartbeat(), is(true));
+	}
+
+	// TODO should periodically evaluate when lastHeartbeat was received
+
+	// TODO should start election on missing heartbeat
 }

@@ -1,9 +1,30 @@
 package com.steffenboe.raft.server;
 
-record Message(String content) {
+class Message {
 
-    String process() {
-        return content;
+    private final String from;
+
+    Message(String from) {
+        this.from = from;
     }
+
+    boolean isFromLeader() {
+        return source().equals("l");
+    }
+
+    boolean isAppendEntryMessage(){
+        return selector().equals("appendentry");
+    }
+
+    private String source() {
+        return from.split(";")[0];
+    }
+
+    private String selector() {
+        return from.split(";")[1];
+    }
+
+     
+
     
 }
