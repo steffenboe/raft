@@ -30,9 +30,7 @@ class FollowerTest {
     void shouldNotProcessMessagesNotFromALeader() throws IOException {
         PrintWriter out = mock(PrintWriter.class);
         BufferedReader in = mock(BufferedReader.class);
-
         when(in.readLine()).thenReturn("f;appendentry;");
-
         assertThat(follower.processMessage(in, out), is(false));
     }
 
@@ -48,7 +46,7 @@ class FollowerTest {
 
     @Test
     void shouldNotifyOnHeartbeatTimeout() throws InterruptedException {
-        Thread.sleep(Duration.ofSeconds(5));
+        waitFor5Seconds();
         assertThat(follower.receivedHeartbeat(), is(false));
         assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
     }
@@ -56,7 +54,7 @@ class FollowerTest {
 	@Test
 	void shouldResetReceivedHeartbeat() throws IOException, InterruptedException {
 		receiveHeartbeat();
-		Thread.sleep(Duration.ofSeconds(5));
+		waitFor5Seconds();
 		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
 	}
 
@@ -70,5 +68,9 @@ class FollowerTest {
         when(in.readLine()).thenReturn("l;appendentry;");
 
         follower.processMessage(in, out);
+    }
+
+    private void waitFor5Seconds() throws InterruptedException {
+        Thread.sleep(Duration.ofSeconds(5));
     }
 }
