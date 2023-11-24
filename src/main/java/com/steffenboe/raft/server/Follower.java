@@ -34,10 +34,6 @@ class Follower implements ServerState {
         return false;
     }
 
-    boolean receivedHeartbeat() {
-        return receivedHeartbeat;
-    }
-
     private void waitForHeartbeat() {
         Thread.ofVirtual().start(() -> {
             try {

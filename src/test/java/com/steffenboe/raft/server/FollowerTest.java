@@ -40,14 +40,12 @@ class FollowerTest {
     @Test
     void shouldReceiveHeartbeat() throws IOException {
         receiveHeartbeat();
-        assertThat(follower.receivedHeartbeat(), is(true));
 		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(false));
     }
 
     @Test
     void shouldNotifyOnHeartbeatTimeout() throws InterruptedException {
         waitFor5Seconds();
-        assertThat(follower.receivedHeartbeat(), is(false));
         assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
     }
 
