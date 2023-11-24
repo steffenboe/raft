@@ -11,9 +11,7 @@ import java.time.Duration;
 
 class Follower implements ServerState {
 
-    private boolean receivedHeartbeat;
     private final ElectionTimeoutListener electionTimeoutListener;
-    private boolean isWaiting = true;
     private final long electionTimeout = 3L;
     private Thread heartbeatWait;
 
@@ -42,20 +40,16 @@ class Follower implements ServerState {
             try {
                 System.out.println("Waiting for next heartbeat for " + electionTimeout + "s");
                 waitForTimeout();
-                heartBeatTimeout();
+                System.out.println("No heartbeat received, starting new election...");
+                electionTimeoutListener.onElectionTimeout();
             } catch (InterruptedException ex) {
-                isWaiting = false;
+                System.out.println("Shutting down current heartbeat wait thread.");
             }
         });
     }
 
     private void waitForTimeout() throws InterruptedException {
         Thread.sleep(Duration.ofSeconds(electionTimeout));
-    }
-
-    private void heartBeatTimeout() throws InterruptedException {
-        System.out.println("No heartbeat received, starting new election...");
-        electionTimeoutListener.onElectionTimeout();
     }
 
 }
