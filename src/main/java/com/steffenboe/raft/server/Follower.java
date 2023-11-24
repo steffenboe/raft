@@ -15,10 +15,11 @@ class Follower implements ServerState {
     private final ElectionTimeoutListener electionTimeoutListener;
     private boolean isWaiting = true;
     private final long electionTimeout = 3L;
+    private Thread heartbeatWait;
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
         this.electionTimeoutListener = electionTimeoutListener;
-        waitForHeartbeat();
+        heartbeatWait = waitForHeartbeat();
     }
 
     @Override
@@ -28,21 +29,22 @@ class Follower implements ServerState {
             return false;
         }
         if (message.isAppendEntryMessage()) {
-            receivedHeartbeat = true;
+            System.out.println("Received heartbeat...");
+            heartbeatWait.interrupt();
+            heartbeatWait = waitForHeartbeat();
             return true;
         }
         return false;
     }
 
-    private void waitForHeartbeat() {
-        Thread.ofVirtual().start(() -> {
+    private Thread waitForHeartbeat() {
+        return Thread.ofVirtual().start(() -> {
             try {
+                System.out.println("Waiting for next heartbeat for " + electionTimeout + "s");
                 waitForTimeout();
-                verifyReceivedHeartbeat();
+                heartBeatTimeout();
             } catch (InterruptedException ex) {
-                System.err.println("Error while waiting for heartbeat: " + ex.getMessage());
                 isWaiting = false;
-                Thread.currentThread().interrupt();
             }
         });
     }
@@ -51,16 +53,9 @@ class Follower implements ServerState {
         Thread.sleep(Duration.ofSeconds(electionTimeout));
     }
 
-    private void verifyReceivedHeartbeat() throws InterruptedException {
-        while (isWaiting) {
-            if (!receivedHeartbeat) {
-                electionTimeoutListener.onElectionTimeout();
-                isWaiting = false;
-            }
-            receivedHeartbeat = false;
-            waitForTimeout();
-        }
-        Thread.currentThread().interrupt();
+    private void heartBeatTimeout() throws InterruptedException {
+        System.out.println("No heartbeat received, starting new election...");
+        electionTimeoutListener.onElectionTimeout();
     }
 
 }
