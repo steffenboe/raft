@@ -2,10 +2,10 @@ package com.steffenboe.raft.server;
 
 class Message {
 
-    private final String from;
+    private final String content;
 
-    Message(String from) {
-        this.from = from;
+    Message(String content) {
+        this.content = content;
     }
 
     boolean isFromLeader() {
@@ -17,11 +17,11 @@ class Message {
     }
 
     private String source() {
-        return from.split(";")[0];
+        return content.split(";")[0];
     }
 
     private String selector() {
-        return from.split(";")[1];
+        return content.split(";")[1];
     }
 
      
