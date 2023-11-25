@@ -2,15 +2,13 @@ package com.steffenboe.raft.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.List;
 
 class Candidate implements ServerState {
 
     private int votes = 0;
-    private List<Integer> neighbors;
+    private final List<Integer> neighbors;
 
     /**
      *
@@ -36,19 +34,20 @@ class Candidate implements ServerState {
         votes++;
         for (int port : neighbors) {
             Thread.ofVirtual().start(() -> {
-                try (Socket clientSocket = new Socket("localhost", port)) {
-                    System.out.println("Connecting to server at " + port);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                    String message = "c;requestvote";
-                    out.println(message);
-                    String response = in.readLine();
-                    if(response.equals("true")){
-                        System.out.println("Successfully gained vote from server " + port);
-                        votes++;
-                    }
+                String response = "";
+                try {
+                    SocketConnection socketConnection = new SocketConnection();
+                    socketConnection.connect(port);
+                    socketConnection.send("c;requestvote");
+                    response = socketConnection.response();
                 } catch (IOException ex) {
-
+                    System.out.println("Requesting vote failed, reason: " + ex.getMessage());
+                    Thread.currentThread().interrupt();
+                }
+                
+                if (response.equals("true")) {
+                    System.out.println("Successfully gained vote from server " + port);
+                    votes++;
                 }
 
             });

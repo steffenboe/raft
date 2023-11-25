@@ -40,14 +40,11 @@ class ServerTest {
 
     @Test
     void shouldAbortWhenNotProcessedMessage() throws IOException, InterruptedException {
-        try (Socket clientSocket = new Socket("localhost", 8080)) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            String message = "f;Hello World";
-            out.println(message);
-            String response = in.readLine();
-            assertThat(response, is("closing connection"));
-        } 
+        SocketConnection socketConnection = new SocketConnection();
+        socketConnection.connect(8080);
+        socketConnection.send("f;Hello World");
+        String response = socketConnection.response();
+        assertThat(response, is("closing connection")); 
     }
 
     /**

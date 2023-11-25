@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class CandidateTest {
 
-    private Integer[] PORT_RANGE = {8080, 8081};
+    private static final Integer[] PORT_RANGE = {8080, 8081};
 
     /**
      * On initialization, a candidate should vote for itself.

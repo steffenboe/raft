@@ -57,7 +57,7 @@ class FollowerTest {
 		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
 	}
 
-    // TODO should start election on missing heartbeat
+	// TODO shouldSyncTermsOnHeartbeat
 
 
     private void receiveHeartbeat() throws IOException {
