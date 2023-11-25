@@ -23,15 +23,35 @@ class CandidateTest {
         assertThat(candidate.votes(), is(1));
     }
 
-	@Test
-	void shouldSendRequestVoteRequests() throws InterruptedException {
-		Server follower = new Server(PORT_RANGE);
-		follower.start();
-		Candidate candidate = new Candidate(List.of(follower.getPort()));
-		candidate.initialize();
-		Thread.sleep(Duration.ofSeconds(2));
-		assertThat(candidate.votes(), is(2));
-	}
+    @Test
+    void shouldSendRequestVoteRequests() throws InterruptedException {
+        Server follower = new Server(PORT_RANGE);
+        follower.start();
+        Candidate candidate = new Candidate(List.of(follower.getPort()));
+        candidate.initialize();
+        Thread.sleep(Duration.ofSeconds(2));
+        assertThat(candidate.votes(), is(2));
+    }
 
-	// TODO can not vote twice 
+    /**
+     * The follower is only allowed to vote once per term.
+     */
+    @Test
+    void shouldOnlyVoteOncePerTerm() throws InterruptedException {
+        Server follower = new Server(PORT_RANGE);
+        follower.start();
+
+        Candidate candidate1 = new Candidate(List.of(follower.getPort()));
+        Candidate candidate2 = new Candidate(List.of(follower.getPort()));
+
+        initialize(candidate1);
+        initialize(candidate2);
+
+        assertThat(candidate2.votes(), is(1));
+    }
+
+    private void initialize(Candidate candidate) throws InterruptedException {
+        candidate.initialize();
+        Thread.sleep(Duration.ofSeconds(1));
+    }
 }

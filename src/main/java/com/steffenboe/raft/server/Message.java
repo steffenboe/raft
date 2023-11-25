@@ -28,6 +28,10 @@ class Message {
         return selector().equals("requestvote");
     }
 
+    String candidateId() {
+        return content.split(";")[2];
+    }
+
      
 
     

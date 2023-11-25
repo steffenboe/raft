@@ -14,6 +14,8 @@ class Follower implements ServerState {
     private final ElectionTimeoutListener electionTimeoutListener;
     private final long electionTimeout = 3L;
 
+    private String votedFor;
+
     private Thread heartbeatWait;
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
@@ -21,7 +23,7 @@ class Follower implements ServerState {
     }
 
     @Override
-    public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
+    public synchronized boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
         Message message = new Message(in.readLine());
         if (message.isAppendEntryMessage()) {
             if (!message.isFromLeader()) {
@@ -31,7 +33,15 @@ class Follower implements ServerState {
             return true;
         }
         if (message.isRequestVoteMessage()) {
-            out.println("true");
+            if(votedFor == null || votedFor.isEmpty()){
+                votedFor = message.candidateId();
+                System.out.println("Voting for candidate with id: " + votedFor);
+                out.println("true");
+            } else {
+                System.out.println("NOT Voting for candidate with id: " + message.candidateId());
+                out.println("false");
+            }
+            
             return true;
         }
         return false;
