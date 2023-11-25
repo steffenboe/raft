@@ -24,6 +24,10 @@ class Message {
         return content.split(";")[1];
     }
 
+    boolean isRequestVoteMessage() {
+        return selector().equals("requestvote");
+    }
+
      
 
     

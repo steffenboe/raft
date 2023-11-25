@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * Server that listens for incoming requests.
@@ -91,6 +92,7 @@ public class Server implements ElectionStartedListener {
         this.state = null;
         this.currentTerm = 0;
         this.index = 0;
+        this.serverSocket = null;
     }
 
     public ServerState state() {
@@ -101,7 +103,7 @@ public class Server implements ElectionStartedListener {
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm++;
-        this.state = new Candidate();
+        this.state = new Candidate(Arrays.asList(ports).stream().filter(port -> !port.equals(ports[index])).toList());
         this.state.initialize();
     }
 

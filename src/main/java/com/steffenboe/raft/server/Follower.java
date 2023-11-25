@@ -13,7 +13,7 @@ class Follower implements ServerState {
 
     private final ElectionTimeoutListener electionTimeoutListener;
     private final long electionTimeout = 3L;
-    
+
     private Thread heartbeatWait;
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
@@ -23,11 +23,15 @@ class Follower implements ServerState {
     @Override
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
         Message message = new Message(in.readLine());
-        if (!message.isFromLeader()) {
-            return false;
-        }
         if (message.isAppendEntryMessage()) {
+            if (!message.isFromLeader()) {
+                return false;
+            }
             processHeartbeat();
+            return true;
+        }
+        if (message.isRequestVoteMessage()) {
+            out.println("true");
             return true;
         }
         return false;
