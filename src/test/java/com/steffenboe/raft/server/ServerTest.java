@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -54,10 +55,16 @@ class ServerTest {
      */
     @Test
     void shouldRetryWhenPortInUse() throws IOException {
-        Server server = new Server(PORT_RANGE);
-        server.start();
+        Server secondServer = new Server(PORT_RANGE);
+        secondServer.start();
 
         assertThat(new Socket("localhost", 8081).isConnected(), is(true));
+    }
+
+    @Test
+    void shouldStartNewElection() throws InterruptedException {
+        Thread.sleep(Duration.ofSeconds(4));
+        assertThat(server.state(), instanceOf(Candidate.class));
     }
 
 }

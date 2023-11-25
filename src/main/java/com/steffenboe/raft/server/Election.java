@@ -2,9 +2,16 @@ package  com.steffenboe.raft.server;
 
 class Election implements ElectionTimeoutListener {
 
+    private final ElectionStartedListener electionStartedListener;
+
+    public Election(ElectionStartedListener electionStartedListener) {
+        this.electionStartedListener = electionStartedListener;
+    }
+
     @Override
     public void onElectionTimeout() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        System.out.println("Started new election...");
+        electionStartedListener.onNewElection();
     }
     
 }

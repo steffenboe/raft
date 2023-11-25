@@ -11,17 +11,20 @@ import java.net.Socket;
 /**
  * Server that listens for incoming requests.
  */
-public class Server {
+public class Server implements ElectionStartedListener {
 
     private final Integer[] ports;
     private ServerSocket serverSocket;
     private int index = 0;
     private Thread thread;
 
-    private ServerState state = new Follower(new Election());
+    private Election election;
+    private ServerState state;
 
     public Server(Integer[] ports) {
         this.ports = ports;
+        this.election = new Election(this);
+        this.state = new Follower(election);
     }
 
     public void start() {
@@ -88,5 +91,11 @@ public class Server {
 
     public ServerState state() {
         return state;
+    }
+
+    @Override
+    public void onNewElection() {
+        System.out.println("New election started, transitioning to candidate state...");
+        this.state = new Candidate();
     }
 }
