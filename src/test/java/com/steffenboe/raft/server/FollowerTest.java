@@ -24,6 +24,7 @@ class FollowerTest {
     void setup() {
 		this.fakeElectionTimeoutListener = new ElectionTimeoutListener.FakeElectionTimeoutListener();
         this.follower = new Follower(fakeElectionTimeoutListener);
+		this.follower.initialize();
     }
 
     @Test

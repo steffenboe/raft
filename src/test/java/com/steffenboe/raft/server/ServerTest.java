@@ -10,23 +10,23 @@ import java.time.Duration;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ServerTest {
 
-    private static Server server;
+    private Server server;
     private static final Integer[] PORT_RANGE = {8080, 8081};
 
-    @BeforeAll
-    static void startServerThread() {
+    @BeforeEach
+    void startServerThread() {
         server = new Server(PORT_RANGE);
         server.start();
     }
 
-    @AfterAll
-    static void interruptServerThread() {
+    @AfterEach
+    void interruptServerThread() {
         server.stop();
     }
 

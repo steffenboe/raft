@@ -18,7 +18,6 @@ class Follower implements ServerState {
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
         this.electionTimeoutListener = electionTimeoutListener;
-        heartbeatWait = waitForHeartbeat();
     }
 
     @Override
@@ -55,6 +54,11 @@ class Follower implements ServerState {
         System.out.println("Received heartbeat...");
         heartbeatWait.interrupt();
         heartbeatWait = waitForHeartbeat();
+    }
+
+    @Override
+    public void initialize() {
+        this.heartbeatWait = waitForHeartbeat();
     }
 
 }

@@ -25,13 +25,13 @@ public class Server implements ElectionStartedListener {
 
     public Server(Integer[] ports) {
         this.ports = ports;
-        this.election = new Election(this);
-        this.state = new Follower(election);
     }
 
     public void start() {
         this.thread = new Thread(this::listen);
         thread.start();
+        this.state = new Follower(new Election(this));
+        state.initialize();
     }
 
     /**
@@ -89,6 +89,9 @@ public class Server implements ElectionStartedListener {
 
     public void stop() {
         thread.interrupt();
+        this.state = null;
+        this.currentTerm = 0;
+        this.index = 0;
     }
 
     public ServerState state() {
@@ -100,6 +103,7 @@ public class Server implements ElectionStartedListener {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm++;
         this.state = new Candidate();
+        this.state.initialize();
     }
 
     Integer getCurrentTerm() {

@@ -6,9 +6,20 @@ import java.io.PrintWriter;
 
 class Candidate implements ServerState {
 
+    private int votes = 0;
+
     @Override
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return false;
+    }
+
+    int votes() {
+        return votes;
+    }
+
+    @Override
+    public void initialize() {
+        votes++;
     }
 
 }
