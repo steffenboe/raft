@@ -64,6 +64,7 @@ class ServerTest {
     @Test
     void shouldStartNewElection() throws InterruptedException {
         Thread.sleep(Duration.ofSeconds(4));
+        assertThat(server.getCurrentTerm(), is(2));
         assertThat(server.state(), instanceOf(Candidate.class));
     }
 

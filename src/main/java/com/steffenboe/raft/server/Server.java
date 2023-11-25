@@ -21,6 +21,8 @@ public class Server implements ElectionStartedListener {
     private Election election;
     private ServerState state;
 
+    private int currentTerm = 1;
+
     public Server(Integer[] ports) {
         this.ports = ports;
         this.election = new Election(this);
@@ -96,6 +98,11 @@ public class Server implements ElectionStartedListener {
     @Override
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
+        currentTerm++;
         this.state = new Candidate();
+    }
+
+    Integer getCurrentTerm() {
+        return currentTerm;
     }
 }
