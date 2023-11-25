@@ -18,7 +18,6 @@ public class Server implements ElectionStartedListener {
     private int index = 0;
     private Thread thread;
 
-    private Election election;
     private ServerState state;
 
     private int currentTerm = 1;
