@@ -3,6 +3,7 @@ package com.steffenboe.raft.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,15 +12,17 @@ class Candidate implements ServerState {
     private int votes = 0;
     private final List<Integer> neighbors;
     private String id;
+    private ElectionStartedListener electionStartedListener;
 
     /**
      *
      * @param neighbors all ports, except the one the current server is running
      * on
      */
-    Candidate(List<Integer> neighbors) {
+    Candidate(List<Integer> neighbors, ElectionStartedListener electionStartedListener) {
         this.neighbors = neighbors;
         this.id = UUID.randomUUID().toString();
+        this.electionStartedListener = electionStartedListener;
     }
 
     @Override
@@ -27,7 +30,7 @@ class Candidate implements ServerState {
         return false;
     }
 
-    int votes() {
+    synchronized int votes() {
         return votes;
     }
 
@@ -35,8 +38,34 @@ class Candidate implements ServerState {
     public void initialize() {
         System.out.println("Voting for self, then issuing request vote requests to neighors...");
         votes++;
-        neighbors.parallelStream().forEach(port -> {
-            Thread.ofVirtual().start(() -> {
+        List<Thread> requestVoteThreads = requestVotesFromNeighbors();
+        waitForThreadsToFinish(requestVoteThreads);
+        evaluateVotes();
+    }
+
+    private void waitForThreadsToFinish(List<Thread> requestVoteThreads) {
+        System.out.println("Finished issuing requests, waiting for results...");
+        for (Thread thread : requestVoteThreads) {
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                System.err.println(ex);
+            }
+        }
+    }
+
+    private void evaluateVotes() {
+        System.out.println("Votes received: " + votes());
+        if (votes() >= ((neighbors.size() + 1) / 2) + 1) {
+            System.out.println("Election won with " + votes + " votes!");
+            electionStartedListener.onWonElection();
+        }
+    }
+
+    private List<Thread> requestVotesFromNeighbors() {
+        List<Thread> requestVoteThreads = new ArrayList<>();
+        for (Integer port : neighbors) {
+            requestVoteThreads.add(Thread.ofVirtual().start(() -> {
                 System.out.println("Requesting vote from: " + port);
                 String response = "";
                 try {
@@ -53,20 +82,10 @@ class Candidate implements ServerState {
                     System.out.println("Successfully gained vote from server " + port);
                     votes++;
                 }
-
-            });
-        });
-        System.out.println("Finished issuing requests, waiting for results...");
-        Thread.ofVirtual().start(() -> {
-            boolean shouldWait = true;
-            while(shouldWait){
-                if(votes >= ((neighbors.size() + 1) / 2) + 1){
-                    System.out.println("Election won!");
-                    shouldWait = false;
-                }
-            }
-            Thread.currentThread().interrupt();
-        });
+                
+            }));
+        }
+        return requestVoteThreads;
     }
 
 }

@@ -12,7 +12,7 @@ import java.time.Duration;
 class Follower implements ServerState {
 
     private final ElectionTimeoutListener electionTimeoutListener;
-    private final long electionTimeout = 5L;
+    private long electionTimeout = 5L;
 
     private String votedFor;
 
@@ -20,6 +20,11 @@ class Follower implements ServerState {
 
     public Follower(ElectionTimeoutListener electionTimeoutListener) {
         this.electionTimeoutListener = electionTimeoutListener;
+    }
+
+    public Follower(ElectionTimeoutListener electionTimeoutListener, long electionTimeout) {
+        this(electionTimeoutListener);
+        this.electionTimeout = electionTimeout;
     }
 
     @Override
