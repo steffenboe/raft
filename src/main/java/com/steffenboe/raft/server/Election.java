@@ -13,5 +13,12 @@ class Election implements ElectionTimeoutListener {
         System.out.println("Started new election...");
         electionStartedListener.onNewElection();
     }
+
+    @Override
+    public void onElectionWon() {
+        System.out.println("Election won!");
+        electionStartedListener.onWonElection();
+
+    }
     
 }

@@ -110,4 +110,10 @@ public class Server implements ElectionStartedListener {
     Integer getCurrentTerm() {
         return currentTerm;
     }
+
+    @Override
+    public void onWonElection() {
+        this.state = new Leader();
+        this.state.initialize();
+    }
 }

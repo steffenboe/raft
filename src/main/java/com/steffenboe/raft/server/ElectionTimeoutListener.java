@@ -4,17 +4,29 @@ interface ElectionTimeoutListener {
 
     void onElectionTimeout();
 
+    void onElectionWon();
+
     class FakeElectionTimeoutListener implements ElectionTimeoutListener {
 
-        private boolean gotInvoked = false;
+        private boolean electionTimeoutInvoked = false;
+        private boolean electionWonInvoked = false;
 
         @Override
         public void onElectionTimeout() {
-            gotInvoked = true;
+            electionTimeoutInvoked = true;
         }
 
-        boolean gotInvoked() {
-            return gotInvoked;
+        boolean electionTimeoutInvoked() {
+            return electionTimeoutInvoked;
+        }
+
+        @Override
+        public void onElectionWon() {
+            electionWonInvoked = true;
+        }
+
+        boolean electionWonInvoked() {
+            return electionWonInvoked;
         }
 
     }

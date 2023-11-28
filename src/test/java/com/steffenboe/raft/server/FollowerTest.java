@@ -41,20 +41,20 @@ class FollowerTest {
     @Test
     void shouldReceiveHeartbeat() throws IOException {
         receiveHeartbeat();
-		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(false));
+		assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(false));
     }
 
     @Test
     void shouldNotifyOnHeartbeatTimeout() throws InterruptedException {
         waitFor5Seconds();
-        assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
+        assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(true));
     }
 
 	@Test
 	void shouldResetReceivedHeartbeat() throws IOException, InterruptedException {
 		receiveHeartbeat();
 		waitFor5Seconds();
-		assertThat(fakeElectionTimeoutListener.gotInvoked(), is(true));
+		assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(true));
 	}
 
 	// TODO should sync terms on communication

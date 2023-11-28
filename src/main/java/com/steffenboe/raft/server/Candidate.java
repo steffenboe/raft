@@ -35,8 +35,9 @@ class Candidate implements ServerState {
     public void initialize() {
         System.out.println("Voting for self, then issuing request vote requests to neighors...");
         votes++;
-        for (int port : neighbors) {
+        neighbors.parallelStream().forEach(port -> {
             Thread.ofVirtual().start(() -> {
+                System.out.println("Requesting vote from: " + port);
                 String response = "";
                 try {
                     SocketConnection socketConnection = new SocketConnection();
@@ -54,7 +55,18 @@ class Candidate implements ServerState {
                 }
 
             });
-        }
+        });
+        System.out.println("Finished issuing requests, waiting for results...");
+        Thread.ofVirtual().start(() -> {
+            boolean shouldWait = true;
+            while(shouldWait){
+                if(votes >= ((neighbors.size() + 1) / 2) + 1){
+                    System.out.println("Election won!");
+                    shouldWait = false;
+                }
+            }
+            Thread.currentThread().interrupt();
+        });
     }
 
 }
