@@ -11,19 +11,19 @@ import java.time.Duration;
 
 class Follower implements ServerState {
 
-    private final ElectionTimeoutListener electionTimeoutListener;
-    private long electionTimeout = 5L;
+    private final Server server;
+    private long electionTimeout = 3L;
 
     private String votedFor;
 
     private Thread heartbeatWait;
 
-    public Follower(ElectionTimeoutListener electionTimeoutListener) {
-        this.electionTimeoutListener = electionTimeoutListener;
+    public Follower(Server server) {
+        this.server = server;
     }
 
-    public Follower(ElectionTimeoutListener electionTimeoutListener, long electionTimeout) {
-        this(electionTimeoutListener);
+    public Follower(Server server, long electionTimeout) {
+        this(server);
         this.electionTimeout = electionTimeout;
     }
 
@@ -58,7 +58,7 @@ class Follower implements ServerState {
                 System.out.println("Waiting for next heartbeat for " + electionTimeout + "s");
                 waitForTimeout();
                 System.out.println("No heartbeat received, notifiying election timeout...");
-                electionTimeoutListener.onElectionTimeout();
+                server.onNewElection();
             } catch (InterruptedException ex) {
                 System.out.println("Shutting down current 'heartbeat wait' thread.");
             }

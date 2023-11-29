@@ -1,9 +1,6 @@
 package com.steffenboe.raft.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.Duration;
 
@@ -60,7 +57,7 @@ class ServerTest {
 
     @Test
     void shouldStartNewElection() throws InterruptedException {
-        Thread.sleep(Duration.ofSeconds(4));
+        Thread.sleep(Duration.ofSeconds(6));
         assertThat(server.getCurrentTerm(), is(2));
         assertThat(server.state(), instanceOf(Candidate.class));
     }

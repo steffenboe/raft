@@ -12,7 +12,7 @@ import java.util.Arrays;
 /**
  * Server that listens for incoming requests.
  */
-public class Server implements ElectionStartedListener {
+public class Server {
 
     private final Integer[] ports;
     private ServerSocket serverSocket;
@@ -36,7 +36,7 @@ public class Server implements ElectionStartedListener {
     public void start() {
         this.thread = new Thread(this::listen);
         thread.start();
-        this.state = new Follower(new Election(this), electionTimeoutInSeconds);
+        this.state = new Follower(this, electionTimeoutInSeconds);
         state.initialize();
     }
 
@@ -105,11 +105,10 @@ public class Server implements ElectionStartedListener {
         return state;
     }
 
-    @Override
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm++;
-        this.state = new Candidate(Arrays.asList(ports).stream().filter(port -> !port.equals(ports[index])).toList(), this);
+        this.state = new Candidate(this, Arrays.asList(ports).stream().filter(port -> !port.equals(ports[index])).toList());
         this.state.initialize();
     }
 
@@ -117,7 +116,6 @@ public class Server implements ElectionStartedListener {
         return currentTerm;
     }
 
-    @Override
     public void onWonElection() {
         this.state = new Leader();
         this.state.initialize();

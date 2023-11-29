@@ -10,7 +10,10 @@ import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,12 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FollowerTest {
 
     private Follower follower;
-    private ElectionTimeoutListener.FakeElectionTimeoutListener fakeElectionTimeoutListener;
+    @Mock
+    private Server server;
 
     @BeforeEach
     void setup() {
-		this.fakeElectionTimeoutListener = new ElectionTimeoutListener.FakeElectionTimeoutListener();
-        this.follower = new Follower(fakeElectionTimeoutListener);
+        this.follower = new Follower(server);
 		this.follower.initialize();
     }
 
@@ -41,20 +44,20 @@ class FollowerTest {
     @Test
     void shouldReceiveHeartbeat() throws IOException {
         receiveHeartbeat();
-		assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(false));
+        verifyNoInteractions(server);
     }
 
     @Test
     void shouldNotifyOnHeartbeatTimeout() throws InterruptedException {
         waitFor5Seconds();
-        assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(true));
+        verify(server).onNewElection();
     }
 
 	@Test
 	void shouldResetReceivedHeartbeat() throws IOException, InterruptedException {
 		receiveHeartbeat();
 		waitFor5Seconds();
-		assertThat(fakeElectionTimeoutListener.electionTimeoutInvoked(), is(true));
+        verify(server).onNewElection();
 	}
 
 	// TODO should sync terms on communication

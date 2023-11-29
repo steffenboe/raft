@@ -7,18 +7,24 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CandidateTest {
 
     private static final Integer[] PORT_RANGE = {8080, 8081};
-    private ElectionStartedListener.FakeElectionStartedListener fakeElectionStartedListener = new ElectionStartedListener.FakeElectionStartedListener();
+    @Mock
+    private Server server;
 
     /**
      * On initialization, a candidate should vote for itself.
      */
     @Test
     void shouldVoteForSelf() {
-        Candidate candidate = new Candidate(Collections.emptyList(), fakeElectionStartedListener);
+        Candidate candidate = new Candidate(server, Collections.emptyList());
         assertThat(candidate.votes(), is(0));
         candidate.initialize();
         assertThat(candidate.votes(), is(1));
@@ -28,7 +34,7 @@ class CandidateTest {
     void shouldSendRequestVoteRequests() throws InterruptedException {
         Server follower = new Server(PORT_RANGE);
         follower.start();
-        Candidate candidate = new Candidate(List.of(follower.getPort()), fakeElectionStartedListener);
+        Candidate candidate = new Candidate(server, List.of(follower.getPort()));
         candidate.initialize();
         Thread.sleep(Duration.ofSeconds(2));
         assertThat(candidate.votes(), is(2));
@@ -42,8 +48,8 @@ class CandidateTest {
         Server follower = new Server(PORT_RANGE);
         follower.start();
 
-        Candidate candidate1 = new Candidate(List.of(follower.getPort()), fakeElectionStartedListener);
-        Candidate candidate2 = new Candidate(List.of(follower.getPort()), fakeElectionStartedListener);
+        Candidate candidate1 = new Candidate(server, List.of(follower.getPort()));
+        Candidate candidate2 = new Candidate(server, List.of(follower.getPort()));
 
         initialize(candidate1);
         initialize(candidate2);
@@ -61,14 +67,14 @@ class CandidateTest {
         Server follower2 = new Server(PORT_RANGE, 20L);
         follower2.start();
 
-        Thread.sleep(Duration.ofSeconds(1));
+        Thread.sleep(Duration.ofSeconds(2));
 
-        Candidate candidate = new Candidate(List.of(follower.getPort(), follower2.getPort()), fakeElectionStartedListener);
+        Candidate candidate = new Candidate(server, List.of(follower.getPort(), follower2.getPort()));
         initialize(candidate);
 
         Thread.sleep(Duration.ofSeconds(3));
 
-        assertThat(fakeElectionStartedListener.wonElectionTriggered(), is(true));
+        verify(server).onWonElection();
     }
 
     private void initialize(Candidate candidate) throws InterruptedException {

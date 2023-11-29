@@ -12,17 +12,17 @@ class Candidate implements ServerState {
     private int votes = 0;
     private final List<Integer> neighbors;
     private String id;
-    private ElectionStartedListener electionStartedListener;
+    private Server server;
 
     /**
      *
      * @param neighbors all ports, except the one the current server is running
      * on
      */
-    Candidate(List<Integer> neighbors, ElectionStartedListener electionStartedListener) {
+    Candidate(Server server, List<Integer> neighbors) {
         this.neighbors = neighbors;
         this.id = UUID.randomUUID().toString();
-        this.electionStartedListener = electionStartedListener;
+        this.server = server;
     }
 
     @Override
@@ -58,7 +58,7 @@ class Candidate implements ServerState {
         System.out.println("Votes received: " + votes());
         if (votes() >= ((neighbors.size() + 1) / 2) + 1) {
             System.out.println("Election won with " + votes + " votes!");
-            electionStartedListener.onWonElection();
+            server.onWonElection();
         }
     }
 
