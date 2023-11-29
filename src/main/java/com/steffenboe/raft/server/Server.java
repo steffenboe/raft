@@ -7,14 +7,14 @@ import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * Server that listens for incoming requests.
  */
 public class Server {
 
-    private final Integer[] ports;
+    private final List<Integer> ports;
     private ServerSocket serverSocket;
     private int index = 0;
     private Thread thread;
@@ -24,11 +24,11 @@ public class Server {
     private int currentTerm = 1;
     private long electionTimeoutInSeconds = 3L;
 
-    public Server(Integer[] ports) {
+    public Server(List<Integer> ports) {
         this.ports = ports;
     }
 
-    public Server(Integer[] ports, long electionTimeout){
+    public Server(List<Integer> ports, long electionTimeout) {
         this(ports);
         this.electionTimeoutInSeconds = electionTimeout;
     }
@@ -44,8 +44,8 @@ public class Server {
      * Server listens for Client-Connections and responds to requests.
      */
     private void listen() {
-        System.out.println("Trying startup on port " + ports[index] + "...");
-        try (ServerSocket socket = new ServerSocket(ports[index])) {
+        System.out.println("Trying startup on port " + ports.get(index) + "...");
+        try (ServerSocket socket = new ServerSocket(ports.get(index))) {
             this.serverSocket = socket;
             System.out.println("Server is up and running on port " + serverSocket.getLocalPort());
             while (true) {
@@ -67,16 +67,7 @@ public class Server {
         Socket clientSocket = serverSocket.accept();
         System.out.println("Client connection established.");
         Thread.ofVirtual().start(() -> {
-            try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
-                boolean result = state.processMessage(in, out);
-                if (!result) {
-                    out.println("closing connection");
-                    System.out.println("Closing client connection.");
-                    clientSocket.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            processMessage(clientSocket);
         });
     }
 
@@ -90,7 +81,7 @@ public class Server {
     }
 
     public int getPort() {
-        return ports[index];
+        return ports.get(index);
     }
 
     public void stop() {
@@ -108,8 +99,12 @@ public class Server {
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm++;
-        this.state = new Candidate(this, Arrays.asList(ports).stream().filter(port -> !port.equals(ports[index])).toList());
+        this.state = new Candidate(this, neighbors());
         this.state.initialize();
+    }
+
+    private List<Integer> neighbors() {
+        return ports.stream().filter(port -> !port.equals(ports.get(index))).toList();
     }
 
     Integer getCurrentTerm() {
@@ -117,7 +112,25 @@ public class Server {
     }
 
     public void onWonElection() {
-        this.state = new Leader();
+        this.state = new Leader(neighbors());
         this.state.initialize();
+    }
+
+    private void processMessage(Socket clientSocket) {
+        try (PrintWriter out = getPrintWriter(clientSocket); BufferedReader in = getBufferedReader(clientSocket);) {
+            boolean messageProcessed = state.processMessage(in, out);
+            if (!messageProcessed) {
+                closeConnection(out, clientSocket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeConnection(final PrintWriter out, Socket clientSocket) throws IOException {
+        try (clientSocket) {
+            out.println("closing connection");
+            System.out.println("Closing client connection.");
+        }
     }
 }

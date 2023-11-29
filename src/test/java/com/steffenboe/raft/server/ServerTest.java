@@ -3,6 +3,7 @@ package com.steffenboe.raft.server;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class ServerTest {
 
     private Server server;
-    private static final Integer[] PORT_RANGE = {8080, 8081};
+    private static final List<Integer> PORT_RANGE = List.of(8080, 8081);
 
     @BeforeEach
     void startServerThread() {

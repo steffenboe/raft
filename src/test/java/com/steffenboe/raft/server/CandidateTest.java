@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CandidateTest {
 
-    private static final Integer[] PORT_RANGE = {8080, 8081};
+    private static final List<Integer> PORT_RANGE = List.of(8080, 8081);
     @Mock
     private Server server;
 
