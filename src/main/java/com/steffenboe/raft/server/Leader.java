@@ -24,9 +24,8 @@ class Leader implements ServerState {
             Thread.ofVirtual().start(() -> {
                 try {
                     while (true) {
-                        SocketConnection socketConnection = new SocketConnection();
-                        socketConnection.connect(port);
-                        socketConnection.send("l;appendentry;");
+                        Message message = new Message("l;appendentry;");
+                        message.send(port);
                         Thread.sleep(Duration.ofSeconds(1));
                     }
                 } catch (InterruptedException | IOException ex) {

@@ -1,11 +1,20 @@
 package com.steffenboe.raft.server;
 
+import java.io.IOException;
+
 class Message {
 
     private final String content;
 
     Message(String content) {
         this.content = content;
+    }
+
+    String send(int port) throws IOException {
+        SocketConnection connection = new SocketConnection();
+        connection.connect(port);
+        connection.send(content);
+        return connection.response();
     }
 
     boolean isFromLeader() {

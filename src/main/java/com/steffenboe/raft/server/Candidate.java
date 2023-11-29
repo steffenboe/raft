@@ -69,10 +69,8 @@ class Candidate implements ServerState {
                 System.out.println("Requesting vote from: " + port);
                 String response = "";
                 try {
-                    SocketConnection socketConnection = new SocketConnection();
-                    socketConnection.connect(port);
-                    socketConnection.send("c;requestvote;" + id);
-                    response = socketConnection.response();
+                    Message message = new Message("c;requestVote;" + id);
+                    response = message.send(port);
                 } catch (IOException ex) {
                     System.out.println("Requesting vote failed, reason: " + ex.getMessage());
                     Thread.currentThread().interrupt();
