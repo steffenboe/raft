@@ -13,6 +13,7 @@ class Candidate implements ServerState {
     private final List<Integer> neighbors;
     private String id;
     private Server server;
+    private int currentTerm = 1;
 
     /**
      *
@@ -25,14 +26,24 @@ class Candidate implements ServerState {
         this.server = server;
     }
 
+    Candidate(Server server, List<Integer> neighbors, int currentTerm) {
+        this(server, neighbors);
+        this.currentTerm = currentTerm;
+    }
+
     @Override
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
         Message message = new Message(in.readLine());
-        if(message.isAppendEntryMessage()){
-            server.onLostElection();
-            return true;
+        if (message.isAppendEntryMessage()) {
+            if (message.term() < currentTerm) {
+                System.out.println("received term is smaller than current term, rejecting leader...");
+                return true;
+            } else {
+                server.onLostElection();
+                return true;
+            }
         }
-        
+
         return false;
     }
 
@@ -81,12 +92,12 @@ class Candidate implements ServerState {
                     System.out.println("Requesting vote failed, reason: " + ex.getMessage());
                     Thread.currentThread().interrupt();
                 }
-                
+
                 if (response.equals("true")) {
                     System.out.println("Successfully gained vote from server " + port);
                     votes++;
                 }
-                
+
             }));
         }
         return requestVoteThreads;

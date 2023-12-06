@@ -91,26 +91,42 @@ class CandidateTest {
      */
     @Test
     void receivesAppendEntryDuringElection() throws InterruptedException, IOException {
-        Server server = new Server(PORT_RANGE, 1);
-        server.start();
-        Thread.sleep(Duration.ofSeconds(2));
+        Server server = candidateServer();
         assertThat(server.state(), instanceOf(Candidate.class));
         ServerState candidate = server.state();
 
-        BufferedReader in = mock(BufferedReader.class);
-        when(in.readLine()).thenReturn("l;appendentry");
-        PrintWriter out = mock(PrintWriter.class);
-        
-        candidate.processMessage(in, out);
+        sendMockMessageTo(candidate, "l;appendentry;;2;");
 
         assertThat(server.state(), instanceOf(Follower.class));
+    }
 
-        
+    @Test
+    void shouldCompareTermsOnMessage() throws InterruptedException, IOException {
+        Server server = candidateServer();
+        ServerState candidate = server.state();
+        sendMockMessageTo(candidate, "l;appendentry;;0;");
+
+        assertThat(server.state(), instanceOf(Candidate.class));
 
     }
 
     private void initialize(Candidate candidate) throws InterruptedException {
         candidate.initialize();
         Thread.sleep(Duration.ofSeconds(1));
+    }
+
+    private Server candidateServer() throws InterruptedException {
+        Server server = new Server(PORT_RANGE, 1);
+        server.start();
+        Thread.sleep(Duration.ofSeconds(2));
+        return server;
+    }
+
+    private void sendMockMessageTo(ServerState candidate, String message) throws IOException {
+        BufferedReader in = mock(BufferedReader.class);
+        when(in.readLine()).thenReturn(message);
+        PrintWriter out = mock(PrintWriter.class);
+        
+        candidate.processMessage(in, out);
     }
 }

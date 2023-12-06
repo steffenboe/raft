@@ -103,7 +103,7 @@ public class Server {
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm++;
-        this.state = new Candidate(this, neighbors());
+        this.state = new Candidate(this, neighbors(), currentTerm);
         this.state.initialize();
     }
 

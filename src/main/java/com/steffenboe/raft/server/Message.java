@@ -41,6 +41,11 @@ class Message {
         return content.split(";")[2];
     }
 
+    int term() {
+        System.out.println(content.split(";")[3]);
+        return Integer.parseInt(content.split(";")[3]);
+    }
+
      
 
     
