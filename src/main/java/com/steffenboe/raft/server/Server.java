@@ -36,6 +36,10 @@ public class Server {
     public void start() {
         this.thread = new Thread(this::listen);
         thread.start();
+        transformToFollower();
+    }
+
+    private void transformToFollower() {
         this.state = new Follower(this, electionTimeoutInSeconds);
         state.initialize();
     }
@@ -132,5 +136,10 @@ public class Server {
             out.println("closing connection");
             System.out.println("Closing client connection.");
         }
+    }
+
+    public void onLostElection() {
+        System.out.println("Lost election, transforming back to follower state.");
+        transformToFollower();
     }
 }

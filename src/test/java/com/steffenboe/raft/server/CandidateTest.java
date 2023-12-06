@@ -1,15 +1,21 @@
 package com.steffenboe.raft.server;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,6 +81,32 @@ class CandidateTest {
         Thread.sleep(Duration.ofSeconds(3));
 
         verify(server).onWonElection();
+    }
+
+    /**
+     * During election, it is possible that a candidate receives an AppendEntry
+     * Command from a Server claiming to be leader.
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    @Test
+    void receivesAppendEntryDuringElection() throws InterruptedException, IOException {
+        Server server = new Server(PORT_RANGE, 1);
+        server.start();
+        Thread.sleep(Duration.ofSeconds(2));
+        assertThat(server.state(), instanceOf(Candidate.class));
+        ServerState candidate = server.state();
+
+        BufferedReader in = mock(BufferedReader.class);
+        when(in.readLine()).thenReturn("l;appendentry");
+        PrintWriter out = mock(PrintWriter.class);
+        
+        candidate.processMessage(in, out);
+
+        assertThat(server.state(), instanceOf(Follower.class));
+
+        
+
     }
 
     private void initialize(Candidate candidate) throws InterruptedException {

@@ -27,6 +27,12 @@ class Candidate implements ServerState {
 
     @Override
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
+        Message message = new Message(in.readLine());
+        if(message.isAppendEntryMessage()){
+            server.onLostElection();
+            return true;
+        }
+        
         return false;
     }
 
