@@ -13,16 +13,19 @@ class Follower implements ServerState {
 
     private final Server server;
 
-    private long electionTimeout = 3L;
+    private double electionTimeout = Math.random() * 5;
     private String votedFor;
     private Thread heartbeatWait;
 
-    public Follower(Server server) {
+    private final RaftLog log;
+
+    public Follower(Server server, RaftLog log) {
         this.server = server;
+        this.log = log;
     }
 
-    public Follower(Server server, long electionTimeout) {
-        this(server);
+    public Follower(Server server, RaftLog log, double electionTimeout) {
+        this(server, log);
         this.electionTimeout = electionTimeout;
     }
 
@@ -33,18 +36,24 @@ class Follower implements ServerState {
             if (!message.isFromLeader()) {
                 return false;
             }
-            processHeartbeat();
+            if (message.isEmpty()) {
+                processHeartbeat();
+            } else {
+                log.append(message.content());
+            }
             return true;
         }
+
         if (message.isRequestVoteMessage()) {
-            if(votedFor == null || votedFor.isEmpty()){
+            System.out.println("Received request vote from candidate with id: " + message.candidateId());
+            if (votedFor == null || votedFor.isEmpty()) {
                 votedFor = message.candidateId();
                 System.out.println("Voting for candidate with id: " + votedFor);
                 out.println("true");
             } else {
                 out.println("false");
             }
-            
+
             return true;
         }
         return false;
@@ -57,12 +66,14 @@ class Follower implements ServerState {
                 waitForTimeout();
                 System.out.println("No heartbeat received, notifiying election timeout...");
                 server.onNewElection();
-            } catch (InterruptedException ex) {}
+            } catch (InterruptedException ex) {
+                System.err.println(ex);
+            }
         });
     }
 
     private void waitForTimeout() throws InterruptedException {
-        Thread.sleep(Duration.ofSeconds(electionTimeout));
+        Thread.sleep(Duration.ofSeconds((long) electionTimeout));
     }
 
     private void processHeartbeat() {
@@ -73,6 +84,7 @@ class Follower implements ServerState {
 
     @Override
     public void initialize() {
+        System.out.println("Waiting for heartbeat...");
         this.heartbeatWait = waitForHeartbeat();
     }
 

@@ -22,25 +22,33 @@ public class Server {
     private ServerState state;
 
     private int currentTerm = 1;
-    private long electionTimeoutInSeconds = 3L;
+    private double electionTimeoutInSeconds = Math.random() * 5;
 
-    public Server(List<Integer> ports) {
+    private Term term;
+    private RaftLog log;
+
+    public Server(List<Integer> ports, Term term, RaftLog log) {
         this.ports = ports;
+        this.term = term;
+        this.log = log;
     }
 
-    public Server(List<Integer> ports, long electionTimeout) {
-        this(ports);
+    public Server(List<Integer> ports, Term term, RaftLog log, long electionTimeout) {
+        this(ports, term, log);
         this.electionTimeoutInSeconds = electionTimeout;
     }
 
     public void start() {
+        currentTerm = term.current();
         this.thread = new Thread(this::listen);
         thread.start();
         transformToFollower();
     }
 
     private void transformToFollower() {
-        this.state = new Follower(this, electionTimeoutInSeconds);
+        System.out.println("Transforming to follower state...");
+        this.state = new Follower(this, log, electionTimeoutInSeconds);
+        System.out.println("Initializing follower...");
         state.initialize();
     }
 
@@ -102,7 +110,7 @@ public class Server {
 
     public void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
-        currentTerm++;
+        currentTerm = term.increase();
         this.state = new Candidate(this, neighbors(), currentTerm);
         this.state.initialize();
     }
@@ -116,7 +124,7 @@ public class Server {
     }
 
     public void onWonElection() {
-        this.state = new Leader(neighbors());
+        this.state = new Leader(neighbors(), log);
         this.state.initialize();
     }
 
@@ -141,5 +149,9 @@ public class Server {
     public void onLostElection() {
         System.out.println("Lost election, transforming back to follower state.");
         transformToFollower();
+    }
+
+    public String lastLog() {
+        return log.last();
     }
 }

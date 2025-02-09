@@ -13,31 +13,47 @@ import java.util.List;
 class Leader implements ServerState {
 
     private final List<Integer> neighbors;
+    private final RaftLog log;
 
-    Leader(List<Integer> neighbors) {
+    Leader(List<Integer> neighbors, RaftLog log) {
         this.neighbors = neighbors;
+        this.log = log;
     }
 
     @Override
     public void initialize() {
-        neighbors.forEach(port -> {
-            Thread.ofVirtual().start(() -> {
-                try {
-                    while (true) {
-                        Message message = new Message("l;appendentry;");
-                        message.send(port);
-                        Thread.sleep(Duration.ofSeconds(1));
-                    }
-                } catch (InterruptedException | IOException ex) {
-                    System.err.println(ex);
-                };
-            });
-        });
+        appendEntry("");
     }
 
     @Override
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
-        return false;
+        String message = in.readLine().split(";")[1];
+        System.out.println("Received message: " + message);
+        log.append(message);
+        System.out.println("Appended message to log...");
+        appendEntry(message);
+        System.out.println("Published new entry sucessfull");
+        return true;
+    }
+
+    private void appendEntry(String entry) {
+        neighbors.forEach(port -> {
+            Thread.ofVirtual().start(() -> {
+                try {
+                    while (true) {
+                        sendAppendEntryMessage(entry, port);
+                        Thread.sleep(Duration.ofSeconds(1));
+                    }
+                } catch (InterruptedException | IOException ex) {
+                    System.err.println(ex.getMessage());
+                }
+            });
+        });
+    }
+
+    private void sendAppendEntryMessage(String entry, Integer port) throws IOException {
+        Message message = new Message("l;appendentry;" + (entry != null ? entry : ""));
+        message.send(port);
     }
 
 }

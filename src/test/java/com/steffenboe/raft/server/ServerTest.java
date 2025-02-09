@@ -1,13 +1,14 @@
 package com.steffenboe.raft.server;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,13 @@ class ServerTest {
     private Server server;
     private static final List<Integer> PORT_RANGE = List.of(8080, 8081);
 
+    private Term term;
+    private RaftLog log;
+
     @BeforeEach
     void startServerThread() {
-        server = new Server(PORT_RANGE);
+        term = new Term.InMemoryTerm();
+        server = new Server(PORT_RANGE, term, log);
         server.start();
     }
 
@@ -42,7 +47,7 @@ class ServerTest {
         socketConnection.connect(8080);
         socketConnection.send("f;Hello World");
         String response = socketConnection.response();
-        assertThat(response, is("closing connection")); 
+        assertThat(response, is("closing connection"));
     }
 
     /**
@@ -50,7 +55,7 @@ class ServerTest {
      */
     @Test
     void shouldRetryWhenPortInUse() throws IOException {
-        Server secondServer = new Server(PORT_RANGE);
+        Server secondServer = new Server(PORT_RANGE, term, log);
         secondServer.start();
 
         assertThat(new Socket("localhost", 8081).isConnected(), is(true));

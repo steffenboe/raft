@@ -33,6 +33,10 @@ class Message {
         return content.split(";")[1];
     }
 
+    String content(){
+        return content.split(";")[2];
+    }
+
     boolean isRequestVoteMessage() {
         return selector().equals("requestvote");
     }
@@ -44,6 +48,15 @@ class Message {
     int term() {
         System.out.println(content.split(";")[3]);
         return Integer.parseInt(content.split(";")[3]);
+    }
+
+    @Override
+    public String toString() {
+        return content;
+    }
+
+    public boolean isEmpty() {
+        return content.split(";").length == 2;
     }
 
      
