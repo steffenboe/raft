@@ -27,7 +27,16 @@ class Leader implements ServerState {
 
     @Override
     public void initialize() {
-        appendEntry("");
+        Thread.ofVirtual().start(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(100);
+                    appendEntry("");
+                } catch (InterruptedException ex) {
+                    System.err.println(ex.getMessage());
+                }
+            }
+        });
     }
 
     @Override

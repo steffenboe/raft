@@ -33,15 +33,16 @@ class LeaderTest {
      * follower state.
      */
     @Test
-    void shouldSendHeartbeat() throws InterruptedException {
+    void shouldSendHeartbeatPeriodically() throws InterruptedException {
         Server follower = new Server(PORTS, term, log, 3L);
         follower.start();
 
         Leader leader = new Leader(PORTS, new Log.InMemoryLog());
         leader.initialize();
 
-        Thread.sleep(Duration.ofSeconds(5));
-
+        Thread.sleep(Duration.ofSeconds(1));
+        assertThat(follower.state(), instanceOf(Follower.class));
+        Thread.sleep(Duration.ofSeconds(1));
         assertThat(follower.state(), instanceOf(Follower.class));
     }
 
