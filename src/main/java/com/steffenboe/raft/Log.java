@@ -16,7 +16,7 @@ public interface Log {
      * @return the last line from the log
      */
     Line last();
-    
+
     void commit(int commitIndex);
 
     class InMemoryLog implements Log {
@@ -34,7 +34,7 @@ public interface Log {
 
         @Override
         public Line last() {
-            return lines.getLast();
+            return lines.size() > 0 ? lines.getLast() : new Line(0, "", false);
         }
 
         @Override

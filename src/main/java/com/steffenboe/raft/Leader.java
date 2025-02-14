@@ -8,7 +8,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 class Leader implements ServerState {
@@ -19,10 +21,16 @@ class Leader implements ServerState {
     private static final UUID ID = UUID.randomUUID();
 
     private int commitIndex = 1;
+    private final Map<Integer, Integer> nextIndex = new HashMap<>();
+    private final Map<Integer, Integer> matchIndex = new HashMap<>();
 
     Leader(List<Integer> neighbors, Log log) {
         this.neighbors = neighbors;
         this.log = log;
+        neighbors.forEach(port -> {
+            nextIndex.put(port, log.last().commitIndex() + 1);
+            matchIndex.put(port, 0);
+        });
     }
 
     @Override
@@ -53,7 +61,6 @@ class Leader implements ServerState {
     private void appendEntry(String entry) {
         neighbors.forEach(port -> Thread.ofVirtual().start(() -> {
             try {
-                System.out.println(this + "Sending append entry message to port: " + port);
                 sendAppendEntryMessage(entry, port);
             } catch (IOException ex) {
                 System.err.println(ex.getMessage());
@@ -65,9 +72,22 @@ class Leader implements ServerState {
         Message message = new Message("l;appendentry;" + blankIfNullOr(entry));
         String result = message.send(port);
         if (!blankIfNullOr(entry).isEmpty() && result.equals("true")) {
-            log.commit(commitIndex);
-            commitIndex++;
+            matchIndex.put(port, log.last().commitIndex() - 1);
+            if (isMajorityAcknowledged()) {
+                log.commit(commitIndex);
+                commitIndex++;
+            }
         }
+    }
+
+    private boolean isMajorityAcknowledged() {
+        int count = 1; // Include the leader itself
+        for (int index : matchIndex.values()) {
+            if (index >= commitIndex) {
+                count++;
+            }
+        }
+        return count > neighbors.size() / 2;
     }
 
     private String blankIfNullOr(String entry) {

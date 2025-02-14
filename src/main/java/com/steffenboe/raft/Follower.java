@@ -14,7 +14,7 @@ class Follower implements ServerState {
 
     private final Server server;
 
-    private static final UUID ID = UUID.randomUUID();
+    private final UUID id;
 
     private double electionTimeout = Math.random() * 5;
     private String votedFor;
@@ -26,6 +26,7 @@ class Follower implements ServerState {
     public Follower(Server server, Log log) {
         this.server = server;
         this.log = log;
+        this.id = UUID.randomUUID();
     }
 
     public Follower(Server server, Log log, double electionTimeout) {
@@ -67,7 +68,6 @@ class Follower implements ServerState {
     private Thread waitForHeartbeat() {
         return Thread.ofVirtual().start(() -> {
             try {
-                System.out.println(this + "Waiting for next heartbeat for " + electionTimeout + "s");
                 waitForTimeout();
                 System.out.println(this+ "No heartbeat received, notifiying election timeout...");
                 server.onNewElection();
@@ -82,20 +82,18 @@ class Follower implements ServerState {
     }
 
     private void processHeartbeat() {
-        System.out.println(this + "Received heartbeat...");
         heartbeatWait.interrupt();
         heartbeatWait = waitForHeartbeat();
     }
 
     @Override
     public void initialize() {
-        System.out.println(this + " Waiting for heartbeat...");
         this.heartbeatWait = waitForHeartbeat();
     }
 
     @Override
     public String toString() {
-        return String.format("[FOLLOWER %s] ", ID.toString());
+        return String.format("[FOLLOWER %s] ", id.toString());
     }
 
 }
