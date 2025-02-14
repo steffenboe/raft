@@ -44,7 +44,7 @@ class Follower implements ServerState {
                 processHeartbeat();
             } else {
                 log.append(new Line(commitIndex, message.content(), false));
-                System.out.println(this + "FOLLOWER appended messsage at commitIndex " + commitIndex);
+                System.out.println(this + "FOLLOWER appended  " + message.content() + " at commitIndex " + commitIndex);
             }
             return true;
         }

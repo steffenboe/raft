@@ -34,9 +34,9 @@ class Leader implements ServerState {
     public boolean processMessage(BufferedReader in, PrintWriter out) throws IOException {
         String message = in.readLine();
         System.out.println(this + "Received message: " + message);
-        log.append(new Line(commitIndex, message, false));
+        log.append(new Line(commitIndex, message.split(";")[1], false));
         System.out.println(this + "Appended message to log...");
-        appendEntry(message);
+        appendEntry(message.split(";")[1]);
         System.out.println(this + "Appended new entry sucessfully to followers...");
         return true;
     }
@@ -46,8 +46,7 @@ class Leader implements ServerState {
             try {
                 System.out.println(this + "Sending append entry message to port: " + port);
                 sendAppendEntryMessage(entry, port);
-                Thread.sleep(Duration.ofSeconds(1));
-            } catch (InterruptedException | IOException ex) {
+            } catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
         }));

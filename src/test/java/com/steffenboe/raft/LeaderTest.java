@@ -54,7 +54,7 @@ class LeaderTest {
         try (var in = new BufferedReader(new StringReader("add;new log"));
                 var out = new PrintWriter(new StringWriter())) {
             leader.processMessage(in, out);
-            assertThat(log.last(), is("new log"));
+            assertThat(log.last().content(), is("new log"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -77,19 +77,18 @@ class LeaderTest {
     }
 
     @Test
-    void shouldCommit() {
+    void shouldCommit() throws InterruptedException {
         Server follower = new Server(PORTS, term, new Log.InMemoryLog());
         follower.start();
         Leader leader = new Leader(PORTS, log);
         leader.initialize();
-        try (var in = new BufferedReader(new StringReader("set x 10"));
+        try (var in = new BufferedReader(new StringReader("add;set x 10"));
                 var out = new PrintWriter(new StringWriter())) {
             leader.processMessage(in, out);
+            Thread.sleep(Duration.ofSeconds(2));
             assertThat(leader.getCommitIndex(), is(2));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    // TODO heartbeat period configurable
 }
