@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -27,7 +27,7 @@ class FollowerTest {
 
     @BeforeEach
     void setup() {
-        this.follower = new Follower(server, new RaftLog.InMemoryRaftLog());
+        this.follower = new Follower(server, new Log.InMemoryLog());
 		this.follower.initialize();
     }
 

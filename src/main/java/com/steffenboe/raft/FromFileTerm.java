@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

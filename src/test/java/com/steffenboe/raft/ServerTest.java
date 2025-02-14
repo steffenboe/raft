@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -19,7 +19,7 @@ class ServerTest {
     private static final List<Integer> PORT_RANGE = List.of(8080, 8081);
 
     private Term term;
-    private RaftLog log;
+    private Log log;
 
     @BeforeEach
     void startServerThread() {

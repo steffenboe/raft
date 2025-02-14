@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Server that listens for incoming requests.
  */
-public class Server {
+class Server {
 
     private final List<Integer> ports;
     private ServerSocket serverSocket;
@@ -25,20 +25,20 @@ public class Server {
     private double electionTimeoutInSeconds = Math.random() * 5;
 
     private Term term;
-    private RaftLog log;
+    private Log log;
 
-    public Server(List<Integer> ports, Term term, RaftLog log) {
+    Server(List<Integer> ports, Term term, Log log) {
         this.ports = ports;
         this.term = term;
         this.log = log;
     }
 
-    public Server(List<Integer> ports, Term term, RaftLog log, long electionTimeout) {
+    Server(List<Integer> ports, Term term, Log log, long electionTimeout) {
         this(ports, term, log);
         this.electionTimeoutInSeconds = electionTimeout;
     }
 
-    public void start() {
+    void start() {
         currentTerm = term.current();
         this.thread = new Thread(this::listen);
         thread.start();
@@ -92,11 +92,11 @@ public class Server {
         return new PrintWriter(clientSocket.getOutputStream(), true);
     }
 
-    public int getPort() {
+    int getPort() {
         return ports.get(index);
     }
 
-    public void stop() {
+    void stop() {
         thread.interrupt();
         this.state = null;
         this.currentTerm = 0;
@@ -104,11 +104,11 @@ public class Server {
         this.serverSocket = null;
     }
 
-    public ServerState state() {
+    ServerState state() {
         return state;
     }
 
-    public void onNewElection() {
+    void onNewElection() {
         System.out.println("New election started, transitioning to candidate state...");
         currentTerm = term.increase();
         this.state = new Candidate(this, neighbors(), currentTerm);
@@ -123,7 +123,7 @@ public class Server {
         return currentTerm;
     }
 
-    public void onWonElection() {
+    void onWonElection() {
         this.state = new Leader(neighbors(), log);
         this.state.initialize();
     }
@@ -133,6 +133,9 @@ public class Server {
             boolean messageProcessed = state.processMessage(in, out);
             if (!messageProcessed) {
                 closeConnection(out, clientSocket);
+            } else {
+                out.write("true");
+                out.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,12 +149,12 @@ public class Server {
         }
     }
 
-    public void onLostElection() {
+    void onLostElection() {
         System.out.println("Lost election, transforming back to follower state.");
         transformToFollower();
     }
 
-    public String lastLog() {
-        return log.last();
+    String lastLog() {
+        return log.last().content();
     }
 }

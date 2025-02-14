@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -28,12 +28,12 @@ class CandidateTest {
     private Server server;
 
     private Term term;
-    private RaftLog log;
+    private Log log;
 
     @BeforeEach
     void startServerThread() {
         term = new Term.InMemoryTerm();
-        log = new RaftLog.InMemoryRaftLog();
+        log = new Log.InMemoryLog();
     }
 
     /**

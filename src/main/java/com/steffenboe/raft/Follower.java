@@ -2,29 +2,33 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.UUID;
 
 class Follower implements ServerState {
 
     private final Server server;
 
+    private static final UUID ID = UUID.randomUUID();
+
     private double electionTimeout = Math.random() * 5;
     private String votedFor;
     private Thread heartbeatWait;
 
-    private final RaftLog log;
+    private final Log log;
+    private int commitIndex = 1;
 
-    public Follower(Server server, RaftLog log) {
+    public Follower(Server server, Log log) {
         this.server = server;
         this.log = log;
     }
 
-    public Follower(Server server, RaftLog log, double electionTimeout) {
+    public Follower(Server server, Log log, double electionTimeout) {
         this(server, log);
         this.electionTimeout = electionTimeout;
     }
@@ -39,16 +43,17 @@ class Follower implements ServerState {
             if (message.isEmpty()) {
                 processHeartbeat();
             } else {
-                log.append(message.content());
+                log.append(new Line(commitIndex, message.content(), false));
+                System.out.println(this + "FOLLOWER appended messsage at commitIndex " + commitIndex);
             }
             return true;
         }
 
         if (message.isRequestVoteMessage()) {
-            System.out.println("Received request vote from candidate with id: " + message.candidateId());
+            System.out.println(this + "Received request vote from candidate with id: " + message.candidateId());
             if (votedFor == null || votedFor.isEmpty()) {
                 votedFor = message.candidateId();
-                System.out.println("Voting for candidate with id: " + votedFor);
+                System.out.println(this + "Voting for candidate with id: " + votedFor);
                 out.println("true");
             } else {
                 out.println("false");
@@ -62,9 +67,9 @@ class Follower implements ServerState {
     private Thread waitForHeartbeat() {
         return Thread.ofVirtual().start(() -> {
             try {
-                System.out.println("Waiting for next heartbeat for " + electionTimeout + "s");
+                System.out.println(this + "Waiting for next heartbeat for " + electionTimeout + "s");
                 waitForTimeout();
-                System.out.println("No heartbeat received, notifiying election timeout...");
+                System.out.println(this+ "No heartbeat received, notifiying election timeout...");
                 server.onNewElection();
             } catch (InterruptedException ex) {
                 System.err.println(ex);
@@ -77,15 +82,20 @@ class Follower implements ServerState {
     }
 
     private void processHeartbeat() {
-        System.out.println("Received heartbeat...");
+        System.out.println(this + "Received heartbeat...");
         heartbeatWait.interrupt();
         heartbeatWait = waitForHeartbeat();
     }
 
     @Override
     public void initialize() {
-        System.out.println("Waiting for heartbeat...");
+        System.out.println(this + " Waiting for heartbeat...");
         this.heartbeatWait = waitForHeartbeat();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[FOLLOWER %s] ", ID.toString());
     }
 
 }

@@ -1,4 +1,4 @@
-package com.steffenboe.raft.server;
+package com.steffenboe.raft;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -20,12 +20,12 @@ class LeaderTest {
     private static final List<Integer> PORTS = List.of(8080);
 
     private Term term;
-    private RaftLog log;
+    private Log log;
 
     @BeforeEach
     void setup() {
         term = new Term.InMemoryTerm();
-        log = new RaftLog.InMemoryRaftLog();
+        log = new Log.InMemoryLog();
     }
 
     /**
@@ -37,7 +37,7 @@ class LeaderTest {
         Server follower = new Server(PORTS, term, log, 3L);
         follower.start();
 
-        Leader leader = new Leader(PORTS, new RaftLog.InMemoryRaftLog());
+        Leader leader = new Leader(PORTS, new Log.InMemoryLog());
         leader.initialize();
 
         Thread.sleep(Duration.ofSeconds(5));
@@ -62,7 +62,7 @@ class LeaderTest {
 
     @Test
     void shouldReplicateLogEntries() throws InterruptedException {
-        Server follower = new Server(PORTS, term, new RaftLog.InMemoryRaftLog());
+        Server follower = new Server(PORTS, term, new Log.InMemoryLog());
         follower.start();
         Leader leader = new Leader(PORTS, log);
         leader.initialize();
@@ -74,7 +74,21 @@ class LeaderTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    @Test
+    void shouldCommit() {
+        Server follower = new Server(PORTS, term, new Log.InMemoryLog());
+        follower.start();
+        Leader leader = new Leader(PORTS, log);
+        leader.initialize();
+        try (var in = new BufferedReader(new StringReader("set x 10"));
+                var out = new PrintWriter(new StringWriter())) {
+            leader.processMessage(in, out);
+            assertThat(leader.getCommitIndex(), is(2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // TODO heartbeat period configurable
