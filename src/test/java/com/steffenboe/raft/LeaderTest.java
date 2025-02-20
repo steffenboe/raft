@@ -3,8 +3,6 @@ package com.steffenboe.raft;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -89,7 +87,7 @@ class LeaderTest {
                 var out = new PrintWriter(new StringWriter())) {
             leader.processMessage(in, out);
             Thread.sleep(Duration.ofSeconds(2));
-            assertThat(leader.getCommitIndex(), is(2));
+            assertThat(leader.getCurrentCommitIndex(), is(2));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -111,9 +109,10 @@ class LeaderTest {
                 var out = new PrintWriter(new StringWriter())) {
             leader.processMessage(in, out);
             Thread.sleep(Duration.ofSeconds(2));
-            assertThat(leader.getCommitIndex(), is(2));
+            assertThat(leader.getCurrentCommitIndex(), is(2));
             assertThat(follower1.lastLog(), is("set x 10"));
             assertThat(follower2.lastLog(), is("set x 10"));
+            assertThat(leader.lastLog(), is("set x 10"));
         } catch (IOException e) {
             e.printStackTrace();
         }

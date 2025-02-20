@@ -46,6 +46,9 @@ class Message {
     }
 
     int term() {
+        if(content.split(";").length < 4){
+            return 1;
+        }
         System.out.println(content.split(";")[3]);
         return Integer.parseInt(content.split(";")[3]);
     }
